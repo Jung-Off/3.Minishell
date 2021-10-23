@@ -3,106 +3,81 @@
 /*                                                        :::      ::::::::   */
 /*   ft_split.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jji <jji@student.42seoul.kr>               +#+  +:+       +#+        */
+/*   By: jiwchoi <jiwchoi@student.42seoul.kr>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2020/12/28 17:07:17 by jji               #+#    #+#             */
-/*   Updated: 2020/12/29 23:43:16 by jji              ###   ########.fr       */
+/*   Created: 2020/12/27 23:40:16 by jiwchoi           #+#    #+#             */
+/*   Updated: 2021/10/19 16:17:21 by jiwchoi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "libft.h"
 
-static size_t	str_count(const char *str, char c)
+static int	ft_word_cnt(char const *s, char c)
 {
-	size_t i;
-	size_t num;
+	int		cnt;
 
-	i = 0;
-	num = 0;
-	while (str[i] != 0)
+	cnt = 0;
+	while (*s)
 	{
-		if (str[i] != c && str[i] != 0)
+		if (*s != c)
 		{
-			num++;
-			while (str[i] != c && str[i] != 0)
-				i++;
+			cnt++;
+			while (*s && *s != c)
+				s++;
 		}
-		else if (str[i] != 0)
-			i++;
+		s++;
 	}
-	return (num);
+	return (cnt);
 }
 
-static void		f_strcpy(char *dst, char const *src, int st, int la)
+static int	get_sep_word(char **arr, char const *s, char sep)
 {
-	int i;
+	int		i;
+	int		len;
+	char	*start;
 
 	i = 0;
-	while (st < la)
+	len = 0;
+	while (*s)
 	{
-		dst[i] = src[st];
-		i++;
-		st++;
+		if (!len && *s != sep)
+			start = (char *)s;
+		if (len && *s == sep)
+		{
+			arr[i] = ft_substr(start, 0, len);
+			if (!arr[i++])
+				return (i);
+			len = 0;
+		}
+		if (*s != sep)
+			len++;
+		s++;
 	}
-	dst[i] = 0;
-}
-
-static void		*f_mem(char **mem, size_t n)
-{
-	size_t i;
-
-	i = 0;
-	while (i < n)
-	{
-		free(mem[i]);
-		i++;
-	}
-	free(mem);
+	if (len)
+		arr[i++] = ft_substr(start, 0, len);
+	arr[i] = 0;
 	return (0);
 }
 
-static void		split(char const *s, char c, char **str)
+char	**ft_split(char const *s, char c)
 {
-	size_t i;
-	size_t j;
-	size_t pin;
+	int		i;
+	int		idx;
+	char	**result;
 
-	i = 0;
-	j = 0;
-	while (s[i] != 0)
+	if (!s)
+		return (0);
+	result = (char **)malloc(sizeof(char *) * (ft_word_cnt(s, c) + 1));
+	if (!result)
+		return (0);
+	idx = get_sep_word(result, s, c);
+	if (idx)
 	{
-		if (s[i] != c && s[i] != 0)
-		{
-			pin = i;
-			while (s[i] != c && s[i] != 0)
-				i++;
-			if (((str[j] = (char*)malloc(sizeof(char) * (i - pin + 1)))) == 0)
-			{
-				f_mem(str, j);
-				return ;
-			}
-			f_strcpy(str[j], s, pin, i);
-			j++;
-		}
-		else if (s[i] != 0)
-			i++;
+		i = 0;
+		while (i < idx - 1)
+			free(result[i]);
+		free(result);
+		result = NULL;
 	}
-}
-
-char			**ft_split(char const *s, char c)
-{
-	char	**str;
-	size_t	n;
-
-	if (s == 0)
-		return (0);
-	n = str_count(s, c);
-	str = (char **)malloc(sizeof(char *) * (n + 1));
-	if (str == 0)
-		return (0);
-	str[n] = 0;
-	if (n == 0)
-		return (str);
-	split(s, c, str);
-	return (str);
+	return (result);
 }

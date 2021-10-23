@@ -3,39 +3,61 @@
 /*                                                        :::      ::::::::   */
 /*   ft_atoi.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jji <jji@student.42seoul.kr>               +#+  +:+       +#+        */
+/*   By: jiwchoi <jiwchoi@student.42seoul.kr>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2020/12/24 17:53:30 by jji               #+#    #+#             */
-/*   Updated: 2021/02/07 15:27:22 by jji              ###   ########.fr       */
+/*   Created: 2020/12/21 15:36:34 by jiwchoi           #+#    #+#             */
+/*   Updated: 2021/10/19 16:09:51 by jiwchoi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "libft.h"
+#include <limits.h>
 
-int	ft_atoi(const char *str)
+int	ft_isspace(char ch)
 {
-	long long	num;
+	if (ch == ' ')
+		return (1);
+	if (ch == '\f')
+		return (1);
+	if (ch == '\n')
+		return (1);
+	if (ch == '\r')
+		return (1);
+	if (ch == '\t')
+		return (1);
+	if (ch == '\v')
+		return (1);
+	return (0);
+}
+
+static int	check_over_range(long long num, int sign)
+{
+	if (num < -2147483648)
+		return (0);
+	if (num > 2147483647)
+		return (-1);
+	return (num * sign);
+}
+
+int	ft_atoi(const char *nptr)
+{
 	int			sign;
+	long long	num;
 
 	sign = 1;
-	while (*str == '\t' || *str == '\n' || *str == '\v' || *str == '\f'
-			|| *str == '\r' || *str == ' ')
-		str++;
-	if (*str == '-' || *str == '+')
-	{
-		if (*str == '-')
-			sign *= -1;
-		str++;
-	}
 	num = 0;
-	while (*str >= '0' && *str <= '9')
+	while (ft_isspace(*nptr))
+		nptr++;
+	if (*nptr == '-' || *nptr == '+')
 	{
-		num = num * 10 + (*str - '0');
-		if (num > 2147483647 && sign == 1)
-			return (-1);
-		if (num > 2147483648 && sign == -1)
-			return (0);
-		str++;
+		if (*nptr == '-')
+			sign *= -1;
+		nptr++;
 	}
-	return (num * sign);
+	while (*nptr >= '0' && *nptr <= '9')
+	{
+		num *= 10;
+		num += (*(nptr++) - '0');
+	}
+	return (check_over_range(num, sign));
 }

@@ -3,22 +3,25 @@
 /*                                                        :::      ::::::::   */
 /*   ft_strchr.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jji <jji@student.42seoul.kr>               +#+  +:+       +#+        */
+/*   By: jiwchoi <jiwchoi@student.42seoul.kr>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2020/12/22 15:38:30 by jji               #+#    #+#             */
-/*   Updated: 2020/12/29 20:28:56 by jji              ###   ########.fr       */
+/*   Created: 2020/12/22 15:24:04 by jiwchoi           #+#    #+#             */
+/*   Updated: 2021/10/19 16:20:14 by jiwchoi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#include "libft.h"
+
 char	*ft_strchr(const char *s, int c)
 {
-	int i;
-
-	i = 0;
-	while (s[i] && s[i] != c)
-		++i;
-	if (s[i] != c)
-		return (0);
+	while (*s)
+	{
+		if (*s == c)
+			return ((char *)s);
+		s++;
+	}
+	if (!c)
+		return ((char *)s);
 	else
-		return ((char*)s + i);
+		return (0);
 }

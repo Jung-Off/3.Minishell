@@ -3,61 +3,58 @@
 /*                                                        :::      ::::::::   */
 /*   ft_itoa.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jji <jji@student.42seoul.kr>               +#+  +:+       +#+        */
+/*   By: jiwchoi <jiwchoi@student.42seoul.kr>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2020/12/26 20:26:54 by jji               #+#    #+#             */
-/*   Updated: 2020/12/30 02:33:16 by jji              ###   ########.fr       */
+/*   Created: 2020/12/26 17:10:25 by jiwchoi           #+#    #+#             */
+/*   Updated: 2021/10/19 16:15:40 by jiwchoi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "libft.h"
 
-static int	c_len(int n)
+static int	get_len(long long n)
 {
-	int				count;
-	unsigned int	un;
+	int		len;
 
+	len = 0;
 	if (n == 0)
 		return (1);
-	count = 0;
-	un = n;
 	if (n < 0)
 	{
-		count++;
-		un = -n;
+		len++;
+		n *= -1;
 	}
-	while (un > 0)
+	while (n)
 	{
-		un /= 10;
-		count++;
+		len++;
+		n /= 10;
 	}
-	return (count);
+	return (len);
 }
 
-char		*ft_itoa(int n)
+char	*ft_itoa(int n)
 {
-	char			*tmp;
-	int				len;
-	int				negative;
-	unsigned int	un;
+	long long	num;
+	char		*str;
+	int			len;
 
-	len = c_len(n);
-	if (!(tmp = (char*)malloc(sizeof(char) * (len + 1))))
+	num = n;
+	len = get_len(num);
+	str = (char *)malloc(len + 1);
+	if (!str)
 		return (0);
-	tmp[len--] = '\0';
-	negative = 0;
-	un = n;
-	if (n < 0)
+	if (num == 0)
+		str[0] = '0';
+	if (num < 0)
 	{
-		negative = 1;
-		tmp[0] = '-';
-		un = -n;
+		str[0] = '-';
+		num *= -1;
 	}
-	while (len >= (negative ? 1 : 0))
+	str[len--] = 0;
+	while (num > 0)
 	{
-		tmp[len] = un % 10 + '0';
-		un /= 10;
-		len--;
+		str[len--] = '0' + num % 10;
+		num /= 10;
 	}
-	return (tmp);
+	return (str);
 }

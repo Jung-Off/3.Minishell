@@ -3,30 +3,46 @@
 /*                                                        :::      ::::::::   */
 /*   ft_putnbr_fd.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jji <jji@student.42seoul.kr>               +#+  +:+       +#+        */
+/*   By: jiwchoi <jiwchoi@student.42seoul.kr>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2020/12/25 19:25:28 by jji               #+#    #+#             */
-/*   Updated: 2020/12/25 19:26:44 by jji              ###   ########.fr       */
+/*   Created: 2020/12/26 18:01:11 by jiwchoi           #+#    #+#             */
+/*   Updated: 2021/10/19 16:12:14 by jiwchoi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "libft.h"
 
+static void	ft_div(int input, int fd)
+{
+	char	ch;
+
+	if (input == 0)
+		return ;
+	ft_div(input / 10, fd);
+	ch = '0' + input % 10;
+	write(fd, &ch, 1);
+}
+
 void	ft_putnbr_fd(int n, int fd)
 {
-	if (fd < 0)
+	char	ch;
+
+	if (n == 0)
+	{
+		write(fd, "0", 1);
 		return ;
-	if (n == -2147483648)
-		write(fd, "-2147483648", 11);
+	}
 	else if (n < 0)
 	{
 		write(fd, "-", 1);
-		ft_putnbr_fd((-1) * n, fd);
+		ft_div(-(n / 10), fd);
+		ch = '0' - n % 10;
+		write(fd, &ch, 1);
 	}
 	else
 	{
-		if (n > 9)
-			ft_putnbr_fd(n / 10, fd);
-		ft_putchar_fd('0' + (n % 10), fd);
+		ft_div(n / 10, fd);
+		ch = '0' + n % 10;
+		write(fd, &ch, 1);
 	}
 }

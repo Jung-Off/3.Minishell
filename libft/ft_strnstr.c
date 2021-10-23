@@ -3,38 +3,38 @@
 /*                                                        :::      ::::::::   */
 /*   ft_strnstr.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jji <jji@student.42seoul.kr>               +#+  +:+       +#+        */
+/*   By: jiwchoi <jiwchoi@student.42seoul.kr>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2020/12/23 21:25:48 by jji               #+#    #+#             */
-/*   Updated: 2020/12/25 13:30:56 by jji              ###   ########.fr       */
+/*   Created: 2020/12/22 15:20:04 by jiwchoi           #+#    #+#             */
+/*   Updated: 2020/12/24 19:38:33 by jiwchoi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "libft.h"
 
-char	*ft_strnstr(const char *big, const char *small, size_t len)
+char	*ft_strnstr(const char *haystack, const char *needle, size_t len)
 {
-	size_t i;
-	size_t j;
+	size_t	i;
+	size_t	j;
 
 	i = 0;
-	if (*small == 0)
-		return ((char*)big);
-	while (big[i] && i < len)
+	if (!needle[0])
+		return ((char *)haystack);
+	while (haystack[i] && i < len)
 	{
 		j = 0;
-		if (big[i] == small[j])
+		if (haystack[i] == needle[j])
 		{
-			while (small[j])
+			while (needle[j])
 			{
-				if (big[i + j] != small[j] || i + j >= len)
+				if (haystack[i + j] != needle[j] || (i + j) >= len)
 					break ;
-				++j;
+				j++;
 			}
-			if (small[j] == 0)
-				return ((char*)big + i);
+			if (!needle[j])
+				return ((char *)&haystack[i]);
 		}
-		++i;
+		i++;
 	}
 	return (0);
 }

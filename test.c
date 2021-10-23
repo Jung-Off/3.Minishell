@@ -1,35 +1,12 @@
-#include <readline/readline.h>
-#include <readline/history.h>
-#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
 #include <stdio.h>
-#include "./libft/libft.h"
-#include "dirent.h"
-#include <sys/stat.h>
+#include <stdlib.h>
 
 
-int main()
-{
-    int fd[2];
+#define STDIN_PIPE 0x1
+#define STDOUT_PIPE 0x2
 
-    pid_t pid = fork();
-    pipe(fd);
 
-    char **ls = {"ls", NULL};
-    char **wc = {"wc", NULL};
 
-    if (pid == 0)
-    {
-        // dup2(fd[0], STDIN_FILENO);
-        // close(fd[0]);
-        // close(fd[1]);
-        execve("/bin/ls", ls, NULL);
-    }
-    else
-    {
-        dup2(fd[1], STDOUT_FILENO);
-        close(fd[0]);
-        close(fd[1]);
-        execve("/usr/bin/wc", wc, NULL);
-    }
-   
-}
