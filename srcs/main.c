@@ -19,14 +19,6 @@ char	**find_envp_path()
 	return (envp_path);
 }
 
-// void echo_f(char *command /*2차원 배열*/)
-// {
-// 	//2차원 배열로 들어올 것으로 생각을 하였을 때
-
-// 	if ()
-
-// }
-
 char *exe_parse(char **env, char *command_split)
 {
 	int i;
@@ -49,7 +41,7 @@ char *exe_parse(char **env, char *command_split)
 		if(stat(env_path, &buf) == 0)
 		{
 			//printf("여기가 출력이 안되는데 함수가 실행이 되네?");
-			printf("%s", env_path);
+			//printf("%s", env_path);
 			return (env_path);
 		}
 		++i;
@@ -58,61 +50,24 @@ char *exe_parse(char **env, char *command_split)
 	return (0);
 }
 
-int exe(t_cmd_lst *cmd_lst, char **env)
+int exe_just(t_cmd_lst *cmd_lst, char **env)
 {
 	char *env_path;
+	int status;
+	pid_t pid;
 
 	env_path = exe_parse(env, cmd_lst->cmd[0]);
-
 	if (env_path == 0)
 	{
 		printf("명령어가 없어서 함수 나가는중\n");
 		return (1);
 	}
-	//printf("env_path : %s\n", env_path);
-
-	//int i = 0;
-
-	// while (command_split[i])
-	// {
-	// 	printf("%s\n", command_split[i]);
-	// 	++i;
-	// }
-	execve(env_path, cmd_lst->cmd, NULL);
-
-	//옵션이 실행이 안되었으면 free해주기
-	//printf("command_unvalid_option\n");
-	return (1);
-}
-
-
-
-
-void exe_function(t_cmd_lst *cmd_lst, char **env)
-{
-
-	while (cmd_lst)
-	{
-		exe(cmd_lst ,env);
-		cmd_lst = cmd_lst->next;	
-	}
-	
-	//여기서 파이프 라인 구현
-
-}
-
-
-void parent_child(t_cmd_lst *cmd_lst, char **env)
-{
-	pid_t pid;
-	int status;
-
 
 	pid = fork(); // 이함수 안쓰면 waitpid == -1 로 해서 error
 	if (pid == 0)
 	{
 		//printf(" --------자식\n");
-		exe_function(cmd_lst, env);
+			execve(env_path, cmd_lst->cmd, NULL);
 	}
 	else
 	{
@@ -136,88 +91,20 @@ void parent_child(t_cmd_lst *cmd_lst, char **env)
 			//printf("wait : 자식 프로세스 비정상 종료 %d\n", WTERMSIG(status)); // 자식 프로세스를 종료하도록 한 신호의 번호를 반환
 			}
 		}
-	}
-	
+	}	
+	return (1);
 }
 
-int pipe_count(t_cmd_lst *cmd)
-{
-	int i = 0;
 
-	while (cmd)
-	{
-		cmd = cmd->next;
-		++i;
-	}
-	i = i - 1;
-	return i;
-}
-
-void dup_fds(int fds[], int i)
-{
-	
-	if (i == 0)
-	{		//pipe	std	
-			//in    out
-		
-		dup2(fds[1], 1);
-	
-		close(fds[3]);
-		close(fds[2]);
-		close(fds[1]);
-		close(fds[0]);
-	}
-	else
-	{
-
-		dup2(fds[2], 0);
-		
-		close(fds[3]);
-		close(fds[2]);
-		close(fds[1]);
-		close(fds[0]);
-	}
-	
-	
-}
-
-void pipe_link(t_cmd_lst *cmd_lst, int idx)
-{
-	int fds[4];
-
-
-	printf("fds[%d]", fds[0]);
-	printf("fds[%d]", fds[1]);
-	printf("pipe_count %d\n", pipe_count(cmd_lst));
-
-	int i = 0;
-	while(i < 2)
-	{
-		pipe(&fds[i * 2]);
-		++i;
-	}
-	dup_fds(fds, idx);
-
-	printf("after fds[%d]", fds[0]);
-	printf("after fds[%d]", fds[1]);
-	printf("\n");
-}
+//////////////////////////
 
 void exe_main(t_cmd_lst *cmd_lst, char **env)
 {
 	int i = 0;
 
-	while(cmd_lst)
-	{
-		if(cmd_lst->next != NULL)
-		{	
-			pipe_link(cmd_lst, i);
-			//"|로 연결이 되어져 있다는 것"
-			//아마 여기서 파이프 연결
-		}
-		parent_child(cmd_lst, env);
-		cmd_lst = cmd_lst->next;
-	}
+
+	exe_just(cmd_lst, env);
+
 }
 
 int main()
@@ -226,10 +113,10 @@ int main()
 	char *command;
 	t_cmd_lst *cmd_lst;
 
-
 	welcome_text();
 	env = find_envp_path();
 
+	cmd_lst = NULL;
 	while(1)
 	{
 		command = readline("minishell-1.0$ ");
@@ -239,9 +126,15 @@ int main()
 		{
 			printf("%s", command);
 			if (split_line(&cmd_lst, command))
+			{
+				printf("jjijjji\n");
 				return (EXIT_FAILURE);
+			}
 			if (parse(cmd_lst))
+			{
+				printf("jjijjji22\n");
 				return (EXIT_FAILURE);
+			}
 			exe_main(cmd_lst, env);
 			//이런식으로 갈겨도 되는거 맞음?
 			cmd_lst = NULL;

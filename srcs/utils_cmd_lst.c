@@ -13,7 +13,7 @@ void	cmd_lst_add_back(t_cmd_lst **lst, t_cmd_lst *new)
 		return ;
 	}
 	p = *lst;
-	while (p->next)
+	while (p->next!=NULL&&p->next)
 		p = p->next;
 	p->next = new;
 }

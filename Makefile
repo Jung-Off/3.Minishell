@@ -1,7 +1,8 @@
 TARGET		= minishell
 
 CC			= gcc
-CFLAGS		= -Wall -Werror -Wextra #-fsanitize=address -g
+CFLAGS		=  -fsanitize=address -g
+#-Wall -Werror -Wextras
 #CFLAGS		= -fsanitize=address -g
 RM			= rm -rf
 
