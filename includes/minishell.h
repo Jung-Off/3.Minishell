@@ -36,6 +36,7 @@ typedef struct s_redirect
 typedef struct s_cmd_lst
 {
 	char				**cmd;
+	int					fd[2];
 	struct s_redirect	*in;
 	struct s_redirect	*out;
 	struct s_cmd_lst	*next;

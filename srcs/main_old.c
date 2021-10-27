@@ -173,52 +173,16 @@ void exe_main(t_cmd_lst *cmd_lst, char **env)
 		exe_just(cmd_lst, env);
 		return ;	
 	}
-	// while (cmd_lst)
-	// {
-		// pid_t pid = fork();
-		int fd_input = 0;
-		int fd_output = 0;
-		int prev_fd;
-
-		// dup2(fd_input, 0);
-		fd_output = dup(1);
-		fd_input = dup(0);
-	
-		pipe(cmd_lst->fd);
-		// printf("%s\n",*(cmd_lst->cmd));
-		
-		dup2(cmd_lst->fd[1], 1);
-		exe_just(cmd_lst, env);
-		// cmd_lst->next->fd[1] = cmd_lst->fd[1];
-		
-		cmd_lst->next->fd[0] = cmd_lst->fd[0];
-		// close(cmd_lst->fd[0]);
-		close(cmd_lst->fd[1]);
-		cmd_lst = cmd_lst->next;
-		dup2(cmd_lst->fd[0], 0);
-		// dup2(0,fd_input);
-		
-		dup2(fd_output,1);
-		
-
-		// dup2(1,fd_output);
-		close(cmd_lst->fd[0]);
-		// close(cmd_lst->fd[1]);
-		// dup2(0,fd_input);
-		// write(cmd_lst->fd[1], ft_itoa(cmd_lst->fd[1]), ft_strlen(ft_itoa(cmd_lst->fd[1])));
-		// printf("%s\n",*(cmd_lst->cmd));
-		exe_just(cmd_lst, env);
-
-		dup2(fd_input,0);
-
-
-		// printf("1\n");
-		// open_fd(cmd_lst, idx, 2);//dup
-		// printf("2\n");
-		// close_fd(cmd_lst);//fd close
-		// exe_pipe(cmd_lst, env);
-	// 	 cmd_lst = cmd_lst -> next;
-	// }
+	while (cmd_lst)
+	{
+		printf("1\n");
+		open_fd(cmd_lst, idx, 2);
+		printf("2\n");
+		close_fd(cmd_lst);
+		exe_pipe(cmd_lst, env);
+		cmd_lst = cmd_lst -> next;
+		++idx;
+	}
 
 	
 }

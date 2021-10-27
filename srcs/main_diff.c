@@ -193,23 +193,22 @@ void exe_main(t_cmd_lst *cmd_lst, char **env)
 		
 		cmd_lst->next->fd[0] = cmd_lst->fd[0];
 		// close(cmd_lst->fd[0]);
-		close(cmd_lst->fd[1]);
+		// close(cmd_lst->fd[1]);
 		cmd_lst = cmd_lst->next;
 		dup2(cmd_lst->fd[0], 0);
 		// dup2(0,fd_input);
 		
 		dup2(fd_output,1);
-		
 
 		// dup2(1,fd_output);
 		close(cmd_lst->fd[0]);
-		// close(cmd_lst->fd[1]);
+		close(cmd_lst->fd[1]);
 		// dup2(0,fd_input);
 		// write(cmd_lst->fd[1], ft_itoa(cmd_lst->fd[1]), ft_strlen(ft_itoa(cmd_lst->fd[1])));
 		// printf("%s\n",*(cmd_lst->cmd));
 		exe_just(cmd_lst, env);
 
-		dup2(fd_input,0);
+
 
 
 		// printf("1\n");
