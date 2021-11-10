@@ -1,9 +1,38 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   main.c                                             :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jiwchoi <jiwchoi@student.42seoul.k>        +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2021/10/26 13:00:58 by jiwchoi           #+#    #+#             */
+/*   Updated: 2021/11/04 11:51:42 by jiwchoi          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 
-#include "../includes/minishell.h"
+#include "minishell.h"
 
-void welcome_text(void)
+void	test_print(t_cmd *cmd, char *line)
 {
-	printf("\nThis is Minishell welcome\n");
+	int	i;
+
+	printf("%s\n", line);
+	printf("--------------------\n");
+	i = 1;
+	while (cmd)
+	{
+		printf("%d\n", i++);
+		while (*cmd->argv)
+			printf("[%s]\n", *cmd->argv++);
+		printf("redirect\n");
+		while (cmd->redirect)
+		{
+			printf("[%d %s]\n", cmd->redirect->type, cmd->redirect->file);
+			cmd->redirect = cmd->redirect->next;
+		}
+		printf("\n");
+		cmd = cmd->next;
+	}
 }
 
 char	**find_envp_path()
@@ -17,6 +46,16 @@ char	**find_envp_path()
 	envp_path = ft_split(path, ':');
 
 	return (envp_path);
+}
+
+
+void print_cmd(t_cmd *cmd)
+{
+	while(cmd)
+	{
+		printf("%s\n", *(cmd->argv));
+		cmd = cmd->next;
+	}
 }
 
 char *exe_parse(char **env, char *command_split)
@@ -50,218 +89,154 @@ char *exe_parse(char **env, char *command_split)
 	return (0);
 }
 
-int exe_just(t_cmd_lst *cmd_lst, char **env)
+int cmd_num(t_cmd *cmd)
+{
+	int i = 0;
+	
+	while(cmd)
+	{
+		cmd = cmd->next;
+		++i;
+	}
+	return (i);
+}
+
+int exe_just(t_cmd *cmd_lst, char **env)
 {
 	char *env_path;
 	int status;
-	pid_t pid;
+	pid_t pid[cmd_num(cmd_lst)];
+	static int i;
 
-	env_path = exe_parse(env, cmd_lst->cmd[0]);
-	//printf("%s", env_path);
+	env_path = exe_parse(env, cmd_lst->argv[0]);
 	if (env_path == 0)
 	{
 		printf("명령어가 없어서 함수 나가는중\n");
 		return (1);
 	}
 
-	pid = fork(); // 이함수 안쓰면 waitpid == -1 로 해서 error
-	if (pid == 0)
+	pid[i] = fork(); // 이함수 안쓰면 waitpid == -1 로 해서 error
+		
+	if (pid[i] == 0)
 	{
+		// printf("pid %d", pid[i]);
+		i++;	
 		//printf(" --------자식\n");
-			execve(env_path, cmd_lst->cmd, NULL);
+			execve(env_path, cmd_lst->argv, NULL);
 	}
 	else
 	{
-		pid_t waitpid;
+		printf("pid %d", pid[i]);
+		waitpid(pid[i], &status, 0);
+	}
+	
 
-		waitpid = wait(&status);
-		//printf("==========부모\n");
-		if (waitpid == - 1)
-		{
-			printf("Error");
-		}
-		else
-		{
-			if (WIFEXITED(status)) //자식이 정상적으로 종료 되었다면
-			{
-			//printf("wait : 자식 프로세스 정상종료 %d\n", WEXITSTATUS(status)); 
-			//정상종료 WIFEXITED일때만 exit()를 호출하기 위한 인자나 return 값이 설정되고 종료된 자식의 반환코드의 최하위 8비트를 평가한다.
-			}
-			else if (WIFSIGNALED(status)) //자식 프로세스가 어떤 신호 때문에 종료 되었다면 참				{
-			{
-			//printf("wait : 자식 프로세스 비정상 종료 %d\n", WTERMSIG(status)); // 자식 프로세스를 종료하도록 한 신호의 번호를 반환
-			}
-		}
-	}	
 	return (1);
 }
 
 
-//////////////////////////
-
-void open_fd(t_cmd_lst *cmd_lst, int idx, int cnt)
+void pipe_exe(t_cmd *cmd)
 {
-	// pipe(cmd_lst->fd);
-	// if (idx < cnt)
-	// 	pipe(cmd_lst->next->fd);
+	static int idx;
+	pipe(cmd->fd);
 
-	//다음파이프도 만들어주어야하는것 아닌가
-
-	if (idx < cnt)
-		dup2(cmd_lst->fd[0], 0);
-	// if (idx > 0)
-		// dup2 (cmd_lst->next->fd[1], 1);
-}
-
-void close_fd(t_cmd_lst *cmd_lst)
-{
-	close(cmd_lst->fd[0]);
-	close(cmd_lst->fd[1]);
-
-	// close(cmd_lst->next->fd[0]);
-	// close(cmd_lst->next->fd[1]);
-}
-
-int count_cmd(t_cmd_lst *cmd_lst)
-{
-	int i;
-
-	i = 0;
-	while(cmd_lst)
+	int out = dup(STDOUT_FILENO);
+	int in = dup(STDIN_FILENO);
+	if (idx == 0)
 	{
-		++i;
-		cmd_lst = cmd_lst->next;
-	}
-	return (i);
-}
+		dup2(cmd->fd[1], 1);
 
-void exe_pipe(t_cmd_lst *cmd_lst, char **env)
-{
-	char *env_path;
-	int status;
-	pid_t pid;
+		close(cmd->fd[0]);
 
-	env_path = exe_parse(env, cmd_lst->cmd[0]);
-	//printf("%s", env_path);
-	if (env_path == 0)
-	{
-		printf("명령어가 없어서 함수 나가는중\n");
-		return ;
-	}
-
-	pid = fork();
-	if (pid == 0)
-	{
-		execve(env_path, cmd_lst->cmd, NULL);
+		++idx;
 	}
 	else
 	{
-		pid_t waitpid;
-		waitpid = wait(&status);
+		dup2(cmd->fd[0], 0);
+		close(cmd->fd[1]);
+		dup2(out, 1);
+		dup2(in, 0);
 	}
 }
 
-void exe_main(t_cmd_lst *cmd_lst, char **env)
+void exe_main(t_cmd *cmd, char **env)
 {
-	int idx = 0;
-	int cnt;
 
-	// cnt = count_cmd(cmd_lst);
+		exe_just(cmd, env);	
 
-	if (cmd_lst->next == NULL)
+}
+
+int exit_function(char *line)
+{
+	if (ft_strncmp(line, "exit", 4) == 0 && ft_strlen(line) == 4)
 	{	
-		exe_just(cmd_lst, env);
-		return ;	
+		//printf("%s\n", line);
+		free(line);
+		exit (1);
 	}
-	// while (cmd_lst)
-	// {
-		// pid_t pid = fork();
-		int fd_input = 0;
-		int fd_output = 0;
-		int prev_fd;
-
-		// dup2(fd_input, 0);
-		fd_output = dup(1);
-		fd_input = dup(0);
-	
-		pipe(cmd_lst->fd);
-		// printf("%s\n",*(cmd_lst->cmd));
-		
-		dup2(cmd_lst->fd[1], 1);
-		exe_just(cmd_lst, env);
-		// cmd_lst->next->fd[1] = cmd_lst->fd[1];
-		
-		cmd_lst->next->fd[0] = cmd_lst->fd[0];
-		// close(cmd_lst->fd[0]);
-		close(cmd_lst->fd[1]);
-		cmd_lst = cmd_lst->next;
-		dup2(cmd_lst->fd[0], 0);
-		// dup2(0,fd_input);
-		
-		dup2(fd_output,1);
-		
-
-		// dup2(1,fd_output);
-		close(cmd_lst->fd[0]);
-		// close(cmd_lst->fd[1]);
-		// dup2(0,fd_input);
-		// write(cmd_lst->fd[1], ft_itoa(cmd_lst->fd[1]), ft_strlen(ft_itoa(cmd_lst->fd[1])));
-		// printf("%s\n",*(cmd_lst->cmd));
-		exe_just(cmd_lst, env);
-
-		dup2(fd_input,0);
-
-
-		// printf("1\n");
-		// open_fd(cmd_lst, idx, 2);//dup
-		// printf("2\n");
-		// close_fd(cmd_lst);//fd close
-		// exe_pipe(cmd_lst, env);
-	// 	 cmd_lst = cmd_lst -> next;
-	// }
-
-	
+	return (0);
 }
 
-int main()
-{
-	char **env;	
-	char *command;
-	t_cmd_lst *cmd_lst;
+///////////////////////
 
-	welcome_text();
+void newline_function(int sig)
+{
+	if (sig == SIGINT) //신호 무시하기
+	{
+		//  printf("minishell-1.0$");
+		write(STDOUT_FILENO, "\n", 1);
+		 if (rl_on_new_line() == -1)
+		 	exit(1);
+		rl_replace_line("", 1);
+		rl_redisplay();
+		//^c 이부분 제거하기
+	}
+}
+
+void no_action(int sig)
+{
+	if(sig == SIGQUIT)
+	{
+		printf("minishell-1.0$   \b\b\b ");
+		//^\이부부분 제거하기
+		return;
+	}
+}
+// 이런식으로 termcap을 이용해서 더 작성할 수 있다!
+
+int	main(int argc, char **argv, char **envp)
+{
+	char	*line = "  ec\"ho\">>out -n< $USER \'$dfsdf \'$$123  | grep -r";
+//	char	*line = "cat <<$USER";
+
+	t_cmd	*cmd;
+	char **env;
+
+	(void)argc;
+	(void)argv;
+	cmd = NULL;
+
 	env = find_envp_path();
 
-	cmd_lst = NULL;
+	signal(SIGINT, newline_function);
+	signal(SIGQUIT, no_action);
 	while(1)
 	{
-		command = readline("minishell-1.0$ ");
-		//printf("----%d---\n", command[0]);
-		//printf("----%d---\n", command);
-		//ctrl + c 를 누르면 새로운 행이 만들어지도록 어떻게 만들가
-		//if (command && ft_strlen(command) > 0)
-		//printf("%s\n", "fdaf");
-		if (command) 
-		//멍청아!!!!!!!!! *command >> ls | pwd 이렇게 하면 버그/ command >> enter 주소가 있음단독으로는 안됨 ..
-		//ft_strlen(command) > 0 && command 이조합도 안됨
+		line = readline("minishell-1.0$ ");
+		exit_function(line);
+		if(line)
 		{
-			//printf("%s", command);
-			if (split_line(&cmd_lst, command))
+			if (parse_line(&cmd, line, envp))
 				return (EXIT_FAILURE);
-			free(command);
-			if (parse(cmd_lst))
-				return (EXIT_FAILURE);
-
-			exe_main(cmd_lst, env);
-			//이런식으로 갈겨도 되는거 맞음?
-			command = NULL;
-			
-			cmd_lst = NULL;
-			free(cmd_lst);
+			if (ft_strlen(line) > 0)
+			{
+				exe_main(cmd, env);
+				add_history(line);
+			}
 		}
-		add_history(command);
-		//env free;
-		free(command);
+		free(line);
+		line = NULL;
+		cmd_clear(&cmd);
 	}
-	return 0;
+	return (EXIT_SUCCESS);
 }
