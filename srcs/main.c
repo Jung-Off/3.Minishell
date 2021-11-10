@@ -240,18 +240,22 @@ int main()
 		//printf("----%d---\n", command);
 		//ctrl + c 를 누르면 새로운 행이 만들어지도록 어떻게 만들가
 		//if (command && ft_strlen(command) > 0)
-		if (command && ft_strlen(command) > 0) 
+		//printf("%s\n", "fdaf");
+		if (command) 
 		//멍청아!!!!!!!!! *command >> ls | pwd 이렇게 하면 버그/ command >> enter 주소가 있음단독으로는 안됨 ..
 		//ft_strlen(command) > 0 && command 이조합도 안됨
 		{
 			//printf("%s", command);
 			if (split_line(&cmd_lst, command))
 				return (EXIT_FAILURE);
+			free(command);
 			if (parse(cmd_lst))
 				return (EXIT_FAILURE);
 
 			exe_main(cmd_lst, env);
 			//이런식으로 갈겨도 되는거 맞음?
+			command = NULL;
+			
 			cmd_lst = NULL;
 			free(cmd_lst);
 		}
