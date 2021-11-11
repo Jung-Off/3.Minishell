@@ -105,7 +105,7 @@ int exe_just(t_cmd *cmd_lst, char **env)
 {
 	char *env_path;
 	int status;
-	pid_t pid[cmd_num(cmd_lst)];
+	pid_t pid;
 	static int i;
 
 	env_path = exe_parse(env, cmd_lst->argv[0]);
@@ -115,9 +115,9 @@ int exe_just(t_cmd *cmd_lst, char **env)
 		return (1);
 	}
 
-	pid[i] = fork(); // 이함수 안쓰면 waitpid == -1 로 해서 error
+	pid = fork(); // 이함수 안쓰면 waitpid == -1 로 해서 error
 		
-	if (pid[i] == 0)
+	if (pid == 0)
 	{
 		// printf("pid %d", pid[i]);
 		i++;	
@@ -126,44 +126,34 @@ int exe_just(t_cmd *cmd_lst, char **env)
 	}
 	else
 	{
-		printf("pid %d", pid[i]);
-		waitpid(pid[i], &status, 0);
+		printf("pid %d", pid);
+		waitpid(pid, &status, 0);
 	}
 	
-
 	return (1);
 }
 
-
-void pipe_exe(t_cmd *cmd)
+void exe_multi(t_cmd *cmd, char **env)
 {
-	static int idx;
-	pipe(cmd->fd);
+	char *env_path;
+	env_path = exe_parse(env, cmd->argv[0]);
+	
 
-	int out = dup(STDOUT_FILENO);
-	int in = dup(STDIN_FILENO);
-	if (idx == 0)
-	{
-		dup2(cmd->fd[1], 1);
+	dup2(cmd->fd[1], 1);
+	exe_just(cmd, env);
 
-		close(cmd->fd[0]);
-
-		++idx;
-	}
-	else
-	{
-		dup2(cmd->fd[0], 0);
-		close(cmd->fd[1]);
-		dup2(out, 1);
-		dup2(in, 0);
-	}
 }
 
 void exe_main(t_cmd *cmd, char **env)
 {
+	if (cmd->next == NULL)
+	{
+		exe_just(cmd, env);
+		return ;
+	}
 
-		exe_just(cmd, env);	
-
+	exe_multi(cmd, env);
+	
 }
 
 int exit_function(char *line)
